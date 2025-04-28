@@ -584,6 +584,33 @@ class C2f_DySnakeConv(C2f):
         )
 
 
+class Bottleneck(nn.Module):
+    # Standard bottleneck
+    def __init__(
+        self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5
+    ):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+
+
+class DySnakeConv(nn.Module):
+    def __init__(self, inc, ouc, k=3) -> None:
+        super().__init__()
+
+        self.conv_0 = Conv(inc, ouc, k)
+        self.conv_x = DSConv(inc, ouc, 0, k)
+        self.conv_y = DSConv(inc, ouc, 1, k)
+
+    def forward(self, x):
+        return torch.cat([self.conv_0(x), self.conv_x(x), self.conv_y(x)], dim=1)
+
+
 class Bottleneck_DSConv(nn.Module):
     # Standard bottleneck
     def __init__(
