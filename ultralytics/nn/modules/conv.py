@@ -644,15 +644,6 @@ class Bottleneck_DSConv(nn.Module):
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
 
-class C3_DSConv(C3):
-    # C3 module with dsconv
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
-        super().__init__(c1, c2, n, shortcut, g, e)
-        c_ = int(c2 * e)
-        self.m = nn.Sequential(
-            *(Bottleneck_DSConv(c_, c_, shortcut, g, e=1.0) for _ in range(n))
-        )
-
 
 class Focus(nn.Module):
     """Focus wh information into c-space."""
